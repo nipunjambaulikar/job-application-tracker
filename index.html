@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Tracker</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: white;
+            user-select: none; 
+            overflow: hidden;
+        }
+
+        #applied {
+            grid-column: 1 / 3;
+            grid-row: 1 / 2;
+            background-color: #3b82f6; 
+        }
+
+        #shortlisted {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+            background-color: #10b981; 
+        }
+
+        #rejected {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+            background-color: #ef4444; 
+        }
+
+        .section {
+            position: relative; /* Required so the minus button positions itself inside the section */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* The minus button styling */
+        .minus-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .minus-btn:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Animate the minus button separately */
+        .minus-btn:active {
+            transform: scale(0.9);
+        }
+
+        .section:active .session-count,
+        .section:active .total-container {
+            transform: scale(0.95);
+        }
+
+        .label {
+            font-size: 2.5rem;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .session-title {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        .session-count {
+            font-size: 7rem;
+            font-weight: bold;
+            line-height: 1;
+            transition: transform 0.1s ease;
+            margin-bottom: 15px;
+        }
+        
+        .total-container {
+            font-size: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 30px;
+            transition: transform 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="applied" class="section">
+        <div class="minus-btn" title="Undo a click">−</div>
+        <div class="label">Applied</div>
+        <div class="session-title">This Session</div>
+        <div class="session-count">0</div>
+        <div class="total-container">Total All-Time: <span class="total-count">0</span></div>
+    </div>
+
+    <div id="shortlisted" class="section">
+        <div class="minus-btn" title="Undo a click">−</div>
+        <div class="label">Shortlisted</div>
+        <div class="session-title">This Session</div>
+        <div class="session-count">0</div>
+        <div class="total-container">Total All-Time: <span class="total-count">0</span></div>
+    </div>
+
+    <div id="rejected" class="section">
+        <div class="minus-btn" title="Undo a click">−</div>
+        <div class="label">Rejected</div>
+        <div class="session-title">This Session</div>
+        <div class="session-count">0</div>
+        <div class="total-container">Total All-Time: <span class="total-count">0</span></div>
+    </div>
+
+    <script>
+        function setupCounter(sectionId, storageKey) {
+            const section = document.getElementById(sectionId);
+            const sessionElement = section.querySelector('.session-count');
+            const totalElement = section.querySelector('.total-count');
+            const minusBtn = section.querySelector('.minus-btn');
+
+            let sessionCount = 0;
+            let savedTotal = localStorage.getItem(storageKey);
+            let totalCount = savedTotal === null ? 0 : parseInt(savedTotal, 10);
+            
+            sessionElement.textContent = sessionCount;
+            totalElement.textContent = totalCount;
+
+            // Handle adding clicks
+            section.addEventListener('click', () => {
+                sessionCount++;
+                totalCount++;
+                
+                sessionElement.textContent = sessionCount;
+                totalElement.textContent = totalCount;
+                
+                localStorage.setItem(storageKey, totalCount);
+            });
+
+            // Handle subtracting clicks
+            minusBtn.addEventListener('click', (event) => {
+                // Stop the main section click event from triggering
+                event.stopPropagation();
+                
+                // Only subtract if the total is above 0
+                if (totalCount > 0) {
+                    sessionCount--; 
+                    totalCount--;
+                    
+                    sessionElement.textContent = sessionCount;
+                    totalElement.textContent = totalCount;
+                    
+                    localStorage.setItem(storageKey, totalCount);
+                }
+            });
+        }
+
+        setupCounter('applied', 'appliedCount');
+        setupCounter('shortlisted', 'shortlistedCount');
+        setupCounter('rejected', 'rejectedCount');
+    </script>
+</body>
+</html>
