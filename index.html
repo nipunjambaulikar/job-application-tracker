@@ -133,14 +133,18 @@
     </div>
 
     <script>
-        function setupCounter(sectionId, storageKey) {
+        function setupCounter(sectionId, totalStorageKey, sessionStorageKey) {
             const section = document.getElementById(sectionId);
             const sessionElement = section.querySelector('.session-count');
             const totalElement = section.querySelector('.total-count');
             const minusBtn = section.querySelector('.minus-btn');
 
-            let sessionCount = 0;
-            let savedTotal = localStorage.getItem(storageKey);
+            // 1. Session count now uses sessionStorage (survives refreshes, dies on tab close)
+            let savedSession = sessionStorage.getItem(sessionStorageKey);
+            let sessionCount = savedSession === null ? 0 : parseInt(savedSession, 10);
+            
+            // 2. Total count still uses localStorage (persists forever)
+            let savedTotal = localStorage.getItem(totalStorageKey);
             let totalCount = savedTotal === null ? 0 : parseInt(savedTotal, 10);
             
             sessionElement.textContent = sessionCount;
@@ -154,30 +158,36 @@
                 sessionElement.textContent = sessionCount;
                 totalElement.textContent = totalCount;
                 
-                localStorage.setItem(storageKey, totalCount);
+                // Save both to their respective memory types
+                sessionStorage.setItem(sessionStorageKey, sessionCount);
+                localStorage.setItem(totalStorageKey, totalCount);
             });
 
             // Handle subtracting clicks
             minusBtn.addEventListener('click', (event) => {
-                // Stop the main section click event from triggering
                 event.stopPropagation();
                 
-                // Only subtract if the total is above 0
                 if (totalCount > 0) {
-                    sessionCount--; 
                     totalCount--;
+                    // Only subtract from session if it's above 0
+                    if (sessionCount > 0) {
+                        sessionCount--; 
+                    }
                     
                     sessionElement.textContent = sessionCount;
                     totalElement.textContent = totalCount;
                     
-                    localStorage.setItem(storageKey, totalCount);
+                    sessionStorage.setItem(sessionStorageKey, sessionCount);
+                    localStorage.setItem(totalStorageKey, totalCount);
                 }
             });
         }
 
-        setupCounter('applied', 'appliedCount');
-        setupCounter('shortlisted', 'shortlistedCount');
-        setupCounter('rejected', 'rejectedCount');
+        // We use your original keys for the Total so you don't lose your existing all-time history!
+        // We added a third parameter to give the Session counts their own unique temporary keys.
+        setupCounter('applied', 'appliedCount', 'appliedSession');
+        setupCounter('shortlisted', 'shortlistedCount', 'shortlistedSession');
+        setupCounter('rejected', 'rejectedCount', 'rejectedSession');
     </script>
 </body>
 </html>
